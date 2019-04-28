@@ -90,6 +90,44 @@ int CFile::sort(QStringList qstrList)
     qSort(qstrList.begin(), qstrList.end(), compare);
 }
 
+void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
+{
+    QFile file(filePath);
+    qint64 trace_3C = (file.size()-288)/(60000*4+340);
+    qint64 trace_1C = trace_3C/3;
+    char *buffer = new char[60000*4+340];
+    char *bufferQu = new char[288];
+    qDebug()<<"文件大小开始为： "<<targetFile->size();
+    if(file.open(QIODevice::ReadOnly)&&targetFile->open(QIODevice::ReadWrite|QIODevice::Append)){
+        QDataStream in(&file);
+        QDataStream targetIn(targetFile);
+//        targetFile->seek(targetFile->size());
+        in.setVersion(QDataStream::Qt_5_11);
+        targetIn.setVersion(QDataStream::Qt_5_11);
+        if(targetFile->size()==0){
+            qDebug()<<"这是targetFile的第一次写入";
+            in.readRawData(bufferQu , 288);
+            targetIn.writeRawData(bufferQu , 288);
+            for(int i = 0 ; i < trace_1C ; i++){
+                in.readRawData(buffer , 60000*4+340);
+                targetIn.writeRawData(buffer , 60000*4+340);
+            }
+        }else{
+            for(int i = 0 ; i < trace_1C ; i++){
+                in.skipRawData(288+(60000*4+340)*trace_1C*componentNo);
+                in.readRawData(buffer , 60000*4+340);
+                targetIn.writeRawData(buffer , 60000*4+340);
+            }
+        }
+    }
+    qDebug()<<"文件大小最终为： "<<targetFile->size()/(1024*1024);
+    delete [] buffer;
+    delete [] bufferQu;
+    targetFile->close();
+    file.close();
+
+}
+
 QDate CFile::returnMonth(int year , int day)
 {
     bool t;

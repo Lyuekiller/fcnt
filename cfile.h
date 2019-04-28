@@ -14,6 +14,7 @@ public:
     QDate returnMonth(int year , int day);
     bool isRunyear(int year);
     int sort(QStringList qstrList);
+    void writeFcnt(QString filePath , QFile *targetFile , int componentNo);
 };
 
 #endif // CFILE_H

@@ -231,66 +231,46 @@ void Widget::on_mergeButton_clicked()
     progressDialog->setWindowTitle("请稍等");
     progressDialog->setLabelText("格式转化中......");
     progressDialog->setCancelButtonText("Cancel");
+
     CFile cfile;
-    char *bufferQu = new char[160+32*4];
-    char *bufferData = new char[340+60000*4];
     QList<QDateTime> dtList;
     QString mergePath = ui->mergeLineEdit->text();
     QDir mergeDir(mergePath);
     QStringList formatList,fileNameList;
     formatList << "*.fcnt";
     fileNameList = mergeDir.entryList(formatList,QDir::Files|QDir::Readable, QDir::Name);
-    progressDialog->setRange(0,fileNameList.size());
+    progressDialog->setRange(0,fileNameList.size()*3);
     progressDialog->setValue(0);
-    QFile mergeFile(mergePath+"/"+fileNameList.at(0).left(fileNameList.at(0).length()-9)+".fcnt");
-    qDebug()<<"mergeFile: "<<mergePath+"/"+fileNameList.at(0).left(fileNameList.at(0).length()-9)+".fcnt";
+    QString targetPath=mergePath+"/"+fileNameList.at(0).left(fileNameList.at(0).length()-9)+".fcnt";
+    qDebug()<<"targePath: "<<targetPath;
+    QFile *targetFile= new QFile(targetPath);
     cfile.sort(fileNameList);
-
-    if(mergeFile.open(QIODevice::WriteOnly)){
-        QDataStream mergeIn(&mergeFile);
-        mergeIn.setVersion(QDataStream::Qt_5_11);
+    for(int i = 0 ; i < 3 ; i++){
         CSegyFile segy = cfile.getSegyInfo(mergePath+"/"+fileNameList.at(0));
         QDateTime dt(cfile.returnMonth(segy.getYear()+2000,segy.getDay()),segy.getTime());
-        QFile firstFile(mergePath+"/"+fileNameList.at(0));
-        if(firstFile.open(QIODevice::ReadOnly)){
-            QDataStream firstin(&firstFile);
-            firstin.setVersion(QDataStream::Qt_5_11);
-            firstin.readRawData(bufferQu,288);
-            mergeIn.writeRawData(bufferQu,288);
-            while (!firstin.atEnd()) {
-                firstin.readRawData(bufferData,340+60000*4);
-                mergeIn.writeRawData(bufferData,340+60000*4);
-            }
-        }
-        progressDialog->setValue(1);
+        cfile.writeFcnt(mergePath+"/"+fileNameList.at(0),targetFile,i);
         dtList<<dt;
-        for(int i= 1; i<fileNameList.size(); i++){
-            QString fileName = fileNameList.at(i);
-            QString fcntPath = mergePath+"/"+fileName;
-            QFile fcntFile(fcntPath);
-            if(fcntFile.open(QIODevice::ReadOnly)){
-                QDataStream fcntIn(&fcntFile);
-                fcntIn.setVersion(QDataStream::Qt_5_11);
-                segy = cfile.getSegyInfo(fcntPath);
-                dt = QDateTime(cfile.returnMonth(segy.getYear()+2000,segy.getDay()),segy.getTime());
-                qint64 sec = 1;
-                QDateTime lastDt = dtList.at(dtList.size()-1);
-                sec = lastDt.secsTo(dt);
-                qDebug()<<"second"<<sec;
-                if(sec>0){//表明时间排序是正确的，因为数据合成需要按照时间顺序合成
-                    fcntIn.skipRawData(288);
-                    while (!fcntIn.atEnd()) {
-                        fcntIn.readRawData(bufferData,340+60000*4);
-                        mergeIn.writeRawData(bufferData,340+60000*4);
-                    }
-                }else{
-                    QMessageBox::information(this,"Error","文件排序发送错误，或者其他原因导致无法合成!");
-                }
+        progressDialog->setValue(1+fileNameList.size()*i);
+        for(int j = 1 ; j < fileNameList.size() ; j++){
+            segy = cfile.getSegyInfo(mergePath+"/"+fileNameList.at(j));
+            dt = QDateTime(cfile.returnMonth(segy.getYear()+2000,segy.getDay()),segy.getTime());
+            qint64 sec = 1;
+            QDateTime lastDt = dtList.at(dtList.size()-1);
+            sec = lastDt.secsTo(dt);
+            qDebug()<<"second"<<sec;
+            if((i==0&&sec>0)||i>0){
+                cfile.writeFcnt(mergePath+"/"+fileNameList.at(j),targetFile,i);
                 dtList<<dt;
+            }else{
+                QMessageBox::information(this,"Error","文件排序发送错误，或者其他原因导致无法合成!");
+                return;
             }
-            progressDialog->setValue(i+1);
+            progressDialog->setValue(j+fileNameList.size()*i);
         }
     }
+    targetFile->close();
+    delete targetFile;
+    delete progressDialog;
 }
 
 
