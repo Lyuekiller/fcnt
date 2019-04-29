@@ -105,7 +105,7 @@ void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
         in.setVersion(QDataStream::Qt_5_11);
         targetIn.setVersion(QDataStream::Qt_5_11);
         if(targetFile->size()==0){
-            qDebug()<<"这是targetFile的第一次写入";
+            qDebug()<<"这是129.0.0的第1次写入";
             in.readRawData(bufferQu , 288);
             targetIn.writeRawData(bufferQu , 288);
             for(int i = 0 ; i < trace_1C ; i++){
@@ -113,8 +113,12 @@ void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
                 targetIn.writeRawData(buffer , 60000*4+340);
             }
         }else{
-            for(int i = 0 ; i < trace_1C ; i++){
-                in.skipRawData(288+(60000*4+340)*trace_1C*componentNo);
+            qDebug()<<"这是"<<filePath<<"的第"<<componentNo+1<<"次写入"<<"指针的位置在："<<file.pos();
+            in.skipRawData(288);
+            for(int i = 0; i<componentNo; i++){
+             in.skipRawData((60000*4+340)*trace_1C);
+            }
+            for(int i = 0 ; i < trace_1C&&!in.atEnd() ; i++){
                 in.readRawData(buffer , 60000*4+340);
                 targetIn.writeRawData(buffer , 60000*4+340);
             }

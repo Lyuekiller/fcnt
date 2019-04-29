@@ -257,7 +257,6 @@ void Widget::on_mergeButton_clicked()
             qint64 sec = 1;
             QDateTime lastDt = dtList.at(dtList.size()-1);
             sec = lastDt.secsTo(dt);
-            qDebug()<<"second"<<sec;
             if((i==0&&sec>0)||i>0){
                 cfile.writeFcnt(mergePath+"/"+fileNameList.at(j),targetFile,i);
                 dtList<<dt;
