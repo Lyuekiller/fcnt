@@ -116,7 +116,8 @@ void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
             qDebug()<<"这是"<<filePath<<"的第"<<componentNo+1<<"次写入"<<"指针的位置在："<<file.pos();
             in.skipRawData(288);
             for(int i = 0; i<componentNo; i++){
-             in.skipRawData((60000*4+340)*trace_1C);
+                for(int j = 0; j<trace_1C; j++)
+                    in.skipRawData(60000*4+340);
             }
             for(int i = 0 ; i < trace_1C&&!in.atEnd() ; i++){
                 in.readRawData(buffer , 60000*4+340);

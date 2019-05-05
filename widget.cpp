@@ -182,21 +182,28 @@ void Widget::on_readButton_2_clicked()
     QFileInfo fileInfo(ui->readLineEdit->text());
     qint64 length = fileInfo.size();
     qint64 mod = length/(60000*4+340);
-    char *bufferQu = new char[160+32*4];
+    char *bufferQu = new char[160+32*7];
     char *bufferSu = new char[340];
     CFile cfile;
     qDebug()<<"success";
     if(file.open(QIODevice::ReadOnly)){
         QDataStream in(&file);
         in.setVersion(QDataStream::Qt_5_11);
-        in.readRawData(bufferQu,160+32*4);
+        in.readRawData(bufferQu,160+32*7);
         while(!in.atEnd()){
             in.readRawData(bufferSu,340);
             char num[4] = {bufferSu[44],bufferSu[43],bufferSu[42],bufferSu[41]};
             char test[4] = {bufferSu[29],bufferSu[28],bufferSu[27],0};
+            char er[4]= {bufferQu[48],bufferQu[47],bufferQu[46],0};
+
+            char component = bufferSu[40];
+
+            char qu = bufferQu[29];
+
             unsigned int *shortTest = (unsigned int *)num;
             unsigned int *intTest = (unsigned int *)test;
-            qDebug()<<"the result is: "<<*shortTest;
+            unsigned int *inter = (unsigned int *) er;
+            qDebug()<<"the result is: "<<cfile.bcd_to_hex(qu)+0;
             in.skipRawData(60000*4);
         }
 //        CSegyFile csegy = cfile.getSegyInfo(ui->readLineEdit->text());
@@ -210,6 +217,7 @@ void Widget::on_readButton_2_clicked()
     }else{
         qDebug()<<"打开失败";
     }
+//    qDebug()<<"the result is: "<<mod;
     delete [] bufferQu;
     delete [] bufferSu;
     file.close();
@@ -273,3 +281,65 @@ void Widget::on_mergeButton_clicked()
 }
 
 
+
+void Widget::on_openButton_3_clicked()
+{
+    QString quPath = QFileDialog::getOpenFileName(this,"FCNT文件",".","FCNT(*.fcnt)");
+    ui->quLineEdit->setText(quPath);
+}
+
+void Widget::on_quButton_clicked()
+{
+    QString quPath = ui->quLineEdit->text();
+    QFile file(quPath);
+    QFileInfo fileInfo(file);
+    QString quDir = fileInfo.path();
+    qint64 size = fileInfo.size();
+    qint64 mod_288 = (size-288)%(60000*4+340);
+    qint64 mod_384 = (size-384)%(60000*4+340);
+    qDebug()<<"mod_288:"<<mod_288<<" mod_384:"<<mod_384;
+    char *bufferQu = new char[160+32*4];
+    char *buffer = new char[340+60000*4];
+    if(mod_288==0){
+        QMessageBox::information(this,"提醒","文件道头本身就是288的长度，请确认!");
+    }else{
+        if(file.open(QIODevice::ReadOnly)){
+            QFile qufile(quDir+"/"+fileInfo.completeBaseName()+"-c."+fileInfo.suffix());
+            qint64 trace = (size-384)/(60000*4+340);
+            if(qufile.open(QIODevice::ReadWrite)){
+                QDataStream in(&file);
+                QDataStream quIn(&qufile);
+                in.setVersion(QDataStream::Qt_5_11);
+                quIn.setVersion(QDataStream::Qt_5_11);
+                in.readRawData(bufferQu,288);
+                quIn.writeRawData(bufferQu,288);
+                in.skipRawData(384-288);
+                for(int i = 0; i<trace; i++){
+                    in.readRawData(buffer,60000*4+340);
+                    quIn.writeRawData(buffer,60000*4+340);
+                }
+            }
+            qufile.close();
+        }
+    }
+
+}
+
+void Widget::on_openButton_4_clicked()
+{
+    QString dir = QFileDialog::getExistingDirectory(this,"原文件位置",QDir::homePath());
+    ui->lineEdit->setText(dir);
+}
+
+
+
+void Widget::on_tarButton_clicked()
+{
+    QString tarDir = QFileDialog::getExistingDirectory(this,"新文件存放位置",QDir::homePath());
+    ui->tarLineEdit->setText(tarDir);
+}
+
+void Widget::on_composeButton_clicked()
+{
+    QString dir = ui->lineEdit->text();
+}

@@ -35,6 +35,16 @@ private slots:
 
     void on_mergeButton_clicked();
 
+    void on_openButton_3_clicked();
+
+    void on_quButton_clicked();
+
+    void on_openButton_4_clicked();
+
+    void on_tarButton_clicked();
+
+    void on_composeButton_clicked();
+
 private:
     Ui::Widget *ui;
 };
