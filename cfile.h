@@ -2,6 +2,7 @@
 #define CFILE_H
 #include <QList>
 #include "csegyfile.h"
+#include <QFileInfoList>
 class CFile
 {
 public:
@@ -15,6 +16,8 @@ public:
     bool isRunyear(int year);
     int sort(QStringList qstrList);
     void writeFcnt(QString filePath , QFile *targetFile , int componentNo);
+    QFileInfoList GetFileList(QString path);
+    QDateTime getSegyDateTime(QString path, qint64 trace);
 };
 
 #endif // CFILE_H

@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QList>
 #include "csegyfile.h"
+#include "swapbyte.h"
 CFile::CFile()
 {
 
@@ -131,6 +132,56 @@ void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
     targetFile->close();
     file.close();
 
+}
+
+QFileInfoList CFile::GetFileList(QString path)
+{
+    QDir dir(path);
+    QFileInfoList file_list = dir.entryInfoList(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    QFileInfoList folder_list = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for(int i = 0; i != folder_list.size(); i++){
+        QString name = folder_list.at(i).absoluteFilePath();
+        QFileInfoList child_file_list = GetFileList(name);
+        file_list.append(child_file_list);
+    }
+    return file_list;
+}
+
+QDateTime CFile::getSegyDateTime(QString path, qint64 trace)
+{
+    QFile file(path);
+    char *bufferSu = new char[240];
+    if(file.open(QIODevice::ReadOnly)){
+        QDataStream in(&file);
+        in.setVersion(QDataStream::Qt_5_11);
+        in.skipRawData(3600);
+        for(qint64 i = 0; i < trace-1; i++){
+            in.skipRawData(60000*4+240);
+        }
+        in.readRawData(bufferSu,240);
+        char year[2] = {bufferSu[156],bufferSu[157]};
+        short *year_s = (short *)year;
+        swap_short_2(year_s);
+
+        char day[2] = {bufferSu[158],bufferSu[159]};
+        short *day_s = (short *)day;
+        swap_short_2(day_s);
+
+        char hour[2] = {bufferSu[160],bufferSu[161]};
+        short *hour_s = (short *)hour;
+        swap_short_2(hour_s);
+
+        char min[2] = {bufferSu[162],bufferSu[163]};
+        short *min_s = (short *)min;
+        swap_short_2(min_s);
+
+        char sec[2] = {bufferSu[164],bufferSu[165]};
+        short *sec_s = (short *)sec;
+        swap_short_2(sec_s);
+
+        QDateTime dt(returnMonth((*year_s)+2000,*day_s),QTime (*hour_s,*min_s,*sec_s));
+        return dt;
+    }
 }
 
 QDate CFile::returnMonth(int year , int day)

@@ -341,5 +341,12 @@ void Widget::on_tarButton_clicked()
 
 void Widget::on_composeButton_clicked()
 {
-    QString dir = ui->lineEdit->text();
+    CFile cfile;
+    QFileInfoList fileInfoList = cfile.GetFileList(ui->lineEdit->text());
+//    for(int i = 0; i < fileInfoList.size(); i++)
+//        qDebug()<<fileInfoList.at(i).filePath();
+    QString path = fileInfoList.at(3).filePath();
+    for(int i = 0; i < 500; i++)
+        qDebug()<<cfile.getSegyDateTime(path,i+1).toString("yyyy-MM-dd HH:mm:ss");
+
 }
