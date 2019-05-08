@@ -45,6 +45,10 @@ private slots:
 
     void on_composeButton_clicked();
 
+    void on_oButton_clicked();
+
+    void on_testButton_clicked();
+
 private:
     Ui::Widget *ui;
 };

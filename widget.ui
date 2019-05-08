@@ -21,7 +21,7 @@
 font: 9pt &quot;Arial&quot;;</string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab_6">
       <attribute name="title">
@@ -40,7 +40,7 @@ font: 9pt &quot;Arial&quot;;</string>
         <string>合成</string>
        </property>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>125</x>
@@ -62,7 +62,7 @@ font: 9pt &quot;Arial&quot;;</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>125</x>
@@ -299,7 +299,7 @@ font: 9pt &quot;Arial&quot;;</string>
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;在改写道头之前请确认道头长度是&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;否为384个字节，最好能够在确认&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;下是否有多余的字符。&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <property name="geometry">
         <rect>
          <x>112</x>
@@ -324,43 +324,91 @@ font: 9pt &quot;Arial&quot;;</string>
      </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
-       <string>fcnt读取</string>
+       <string>测试</string>
       </attribute>
-      <widget class="QLineEdit" name="readLineEdit">
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>20</y>
+         <width>241</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>读取单个fcnt文件中的序号或者采样率</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_4">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>90</y>
+         <width>341</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>按照时间顺序对文件夹下所有的fcnt格式的数据进行排序</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>110</y>
+         <width>361</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <item>
+         <widget class="QLineEdit" name="testLineEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="oButton">
+          <property name="text">
+           <string>打开</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="testButton">
+          <property name="text">
+           <string>读取</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="">
        <property name="geometry">
         <rect>
          <x>80</x>
          <y>50</y>
-         <width>171</width>
-         <height>20</height>
+         <width>361</width>
+         <height>25</height>
         </rect>
        </property>
-      </widget>
-      <widget class="QPushButton" name="fileButton">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>50</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>打开</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="readButton_2">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>100</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>读取</string>
-       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QLineEdit" name="readLineEdit"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="fileButton">
+          <property name="text">
+           <string>打开</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="readButton_2">
+          <property name="text">
+           <string>读取</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>

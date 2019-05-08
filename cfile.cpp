@@ -4,6 +4,8 @@
 #include <QList>
 #include "csegyfile.h"
 #include "swapbyte.h"
+#include <algorithm>
+using namespace  std;
 CFile::CFile()
 {
 
@@ -86,10 +88,6 @@ bool compare(const QString &s1, const QString &s2)
     return s1.toLower() < s2.toLower();
 }
 
-int CFile::sort(QStringList qstrList)
-{
-    qSort(qstrList.begin(), qstrList.end(), compare);
-}
 
 void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
 {
@@ -134,14 +132,17 @@ void CFile::writeFcnt(QString filePath, QFile *targetFile, int componentNo)
 
 }
 
-QFileInfoList CFile::GetFileList(QString path)
+QFileInfoList CFile::GetFileList(QString path, QString format)
 {
+    //format的参数格式为*.fcnt才对
     QDir dir(path);
-    QFileInfoList file_list = dir.entryInfoList(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    QStringList nameFilters;
+    nameFilters << format;
+    QFileInfoList file_list = dir.entryInfoList(nameFilters);
     QFileInfoList folder_list = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
     for(int i = 0; i != folder_list.size(); i++){
         QString name = folder_list.at(i).absoluteFilePath();
-        QFileInfoList child_file_list = GetFileList(name);
+        QFileInfoList child_file_list = GetFileList(name,format);
         file_list.append(child_file_list);
     }
     return file_list;
@@ -181,6 +182,34 @@ QDateTime CFile::getSegyDateTime(QString path, qint64 trace)
 
         QDateTime dt(returnMonth((*year_s)+2000,*day_s),QTime (*hour_s,*min_s,*sec_s));
         return dt;
+    }
+}
+
+QDateTime CFile::getFcntDateTime(QString path)
+{
+    QFile file(path);
+    char *buffer = new char[32];
+    if(file.open(QIODevice::ReadOnly)){
+        QDataStream in(&file);
+        in.setVersion(QDataStream::Qt_5_11);
+        in.readRawData(buffer,32);
+        char year = {buffer[10]};
+        int year_int = bcd_to_hex(year);
+        char d = {buffer[11]};
+        int d_int = bcd_to_hex(d)%10;
+        char day = {buffer[12]};
+        int day_int = bcd_to_hex(day)+d_int*100;
+        char hour = {buffer[13]};
+        int hour_int = bcd_to_hex(hour);
+        char min = {buffer[14]};
+        int min_int = bcd_to_hex(min);
+        char sec = {buffer[15]};
+        int sec_int = bcd_to_hex(sec);
+        QTime time(hour_int,min_int,sec_int);
+        QDate date = returnMonth(year_int+2000,day_int);
+        QDateTime dt(date,time);
+        return dt;
+
     }
 }
 

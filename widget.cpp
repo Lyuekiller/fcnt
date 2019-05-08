@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <algorithm>
+using namespace  std;
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -17,6 +19,27 @@ Widget::Widget(QWidget *parent) :
 Widget::~Widget()
 {
     delete ui;
+}
+
+bool cmp(const QString &s1, const QString &s2)
+{
+    return s1.toLower() < s2.toLower();
+}
+
+bool compareSegyDataTime(const QFileInfo &s1, const QFileInfo &s2)
+{
+    CFile cfile;
+    qint64 secsTo = cfile.getSegyDateTime(s1.filePath(),1).secsTo(cfile.getSegyDateTime(s2.filePath(),1));
+    if (secsTo>0) return true;
+    else  return false;
+}
+
+bool compareFcntDataTime(const QFileInfo &s1, const QFileInfo &s2)
+{
+    CFile cfile;
+    qint64 secsTo = cfile.getFcntDateTime(s1.filePath()).secsTo(cfile.getFcntDateTime(s2.filePath()));
+    if (secsTo>0) return true;
+    else  return false;
 }
 
 void Widget::on_openButton_clicked()
@@ -252,7 +275,7 @@ void Widget::on_mergeButton_clicked()
     QString targetPath=mergePath+"/"+fileNameList.at(0).left(fileNameList.at(0).length()-9)+".fcnt";
     qDebug()<<"targePath: "<<targetPath;
     QFile *targetFile= new QFile(targetPath);
-    cfile.sort(fileNameList);
+    std::sort(fileNameList.begin(),fileNameList.end(),cmp);
     for(int i = 0 ; i < 3 ; i++){
         CSegyFile segy = cfile.getSegyInfo(mergePath+"/"+fileNameList.at(0));
         QDateTime dt(cfile.returnMonth(segy.getYear()+2000,segy.getDay()),segy.getTime());
@@ -290,6 +313,14 @@ void Widget::on_openButton_3_clicked()
 
 void Widget::on_quButton_clicked()
 {
+    QProgressDialog *progressDialog=new QProgressDialog(this);
+    progressDialog->setWindowModality(Qt::WindowModal);
+    progressDialog->setMinimumDuration(5);
+    progressDialog->setWindowTitle("请稍等");
+    progressDialog->setLabelText("格式转化中......");
+    progressDialog->setCancelButtonText("Cancel");
+
+
     QString quPath = ui->quLineEdit->text();
     QFile file(quPath);
     QFileInfo fileInfo(file);
@@ -304,8 +335,10 @@ void Widget::on_quButton_clicked()
         QMessageBox::information(this,"提醒","文件道头本身就是288的长度，请确认!");
     }else{
         if(file.open(QIODevice::ReadOnly)){
+            if(mod_384!=0) QMessageBox::information(this,"提醒","这个文件可能存在记录多余（或者不全的情况）!");
             QFile qufile(quDir+"/"+fileInfo.completeBaseName()+"-c."+fileInfo.suffix());
             qint64 trace = (size-384)/(60000*4+340);
+            progressDialog->setRange(1,trace);
             if(qufile.open(QIODevice::ReadWrite)){
                 QDataStream in(&file);
                 QDataStream quIn(&qufile);
@@ -317,6 +350,7 @@ void Widget::on_quButton_clicked()
                 for(int i = 0; i<trace; i++){
                     in.readRawData(buffer,60000*4+340);
                     quIn.writeRawData(buffer,60000*4+340);
+                    progressDialog->setValue(i+1);
                 }
             }
             qufile.close();
@@ -342,11 +376,30 @@ void Widget::on_tarButton_clicked()
 void Widget::on_composeButton_clicked()
 {
     CFile cfile;
-    QFileInfoList fileInfoList = cfile.GetFileList(ui->lineEdit->text());
+    QFileInfoList fileInfoList = cfile.GetFileList(ui->lineEdit->text(),"*.sgy");
 //    for(int i = 0; i < fileInfoList.size(); i++)
 //        qDebug()<<fileInfoList.at(i).filePath();
-    QString path = fileInfoList.at(3).filePath();
-    for(int i = 0; i < 500; i++)
-        qDebug()<<cfile.getSegyDateTime(path,i+1).toString("yyyy-MM-dd HH:mm:ss");
+//    QString path = fileInfoList.at(3).filePath();
+    for(int i = 0; i < fileInfoList.size(); i++)
+        qDebug()<<cfile.getSegyDateTime(fileInfoList.at(i).filePath(),1).toString("yyyy-MM-dd HH:mm:ss")<<"fileName"<<fileInfoList.at(i).fileName();
+
+}
+
+void Widget::on_oButton_clicked()
+{
+    QString dir = QFileDialog::getExistingDirectory(this,"打开文件夹",QDir::homePath());
+    ui->testLineEdit->setText(dir);
+}
+
+
+void Widget::on_testButton_clicked()
+{
+    QString  dirPath = ui->testLineEdit->text();
+    CFile cfile;
+    QFileInfoList fileInfoList = cfile.GetFileList(dirPath,"*.fcnt");
+    std::sort(fileInfoList.begin(),fileInfoList.end(),compareFcntDataTime);
+    for(int i = 0; i < fileInfoList.size(); i++){
+        qDebug()<<cfile.getFcntDateTime(fileInfoList.at(i).filePath()).toString("yyyy-MM-dd HH:mm:ss")<<"---------"<<fileInfoList.at(i).filePath();
+    }
 
 }

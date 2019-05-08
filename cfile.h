@@ -14,10 +14,10 @@ public:
     char swapBinary(char *tni4);
     QDate returnMonth(int year , int day);
     bool isRunyear(int year);
-    int sort(QStringList qstrList);
     void writeFcnt(QString filePath , QFile *targetFile , int componentNo);
-    QFileInfoList GetFileList(QString path);
+    QFileInfoList GetFileList(QString path,QString format);
     QDateTime getSegyDateTime(QString path, qint64 trace);
+    QDateTime getFcntDateTime(QString path);
 };
 
 #endif // CFILE_H
